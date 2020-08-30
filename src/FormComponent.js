@@ -28,8 +28,10 @@ const validationSchema = Yup.object({
       /^((\\+[1-9]{1,4}[ \\-]*)|(\\([0-9]{2,3}\\)[ \\-]*)|([0-9]{2,4})[ \\-]*)*?[0-9]{3,4}?[ \\-]*[0-9]{3,4}?$/,
       "Invalid"
     ),
-  gender: Yup.string().required("Required"),
-  birthday: Yup.date().required("Required"),
+  gender: Yup.string()
+    .required("Required")
+    .notOneOf(["true", "false"], "Required"),
+  birthday: Yup.date("Required").required("Required"),
   nationality: Yup.string().required("Required"),
   ethnicity: Yup.string().required("Required"),
 });
@@ -50,13 +52,20 @@ const FormComponent = () => {
       <div style={{ maxWidth: "700px", width: "100%", padding: "20px" }}>
         <Formik
           validationSchema={validationSchema}
-          initialValues={{}}
-          onSubmit={async (values) => {
-            await new Promise((r) => setTimeout(r, 500));
+          initialValues={{ height: 150 }}
+          onSubmit={(values) => {
             alert(JSON.stringify(values, null, 2));
           }}
         >
-          {({ values, setFieldValue, resetForm }) => {
+          {({
+            values,
+            setFieldValue,
+            setFieldTouched,
+            resetForm,
+            touched,
+            errors,
+            submitCount,
+          }) => {
             return (
               <Form layout="vertical">
                 <Row gutter={[15, 0]}>
@@ -64,6 +73,15 @@ const FormComponent = () => {
                     <Row justify="center">
                       <Col className="profile-photo-container">
                         <Form.Item
+                          hasFeedback={touched["imageUrl"] || submitCount > 0}
+                          help={touched["imageUrl"] || submitCount > 0}
+                          validateStatus={
+                            touched["imageUrl"] || submitCount > 0
+                              ? errors["imageUrl"]
+                                ? "error"
+                                : "success"
+                              : ""
+                          }
                           name="imageUrl"
                           label="Profile Photo"
                           required
@@ -104,27 +122,80 @@ const FormComponent = () => {
                         <Row gutter={[15, 0]}>
                           <Col xs={24} sm={12}>
                             <Form.Item
+                              hasFeedback={
+                                touched["first_name"] || submitCount > 0
+                              }
+                              help={
+                                (touched["first_name"] || submitCount > 0) &&
+                                errors["first_name"]
+                              }
+                              validateStatus={
+                                touched["first_name"] || submitCount > 0
+                                  ? errors["first_name"]
+                                    ? "error"
+                                    : "success"
+                                  : ""
+                              }
                               label="First Name"
                               name="first_name"
                               required
                             >
-                              <Input name="first_name" spellCheck={false} />
+                              <Input
+                                name="first_name"
+                                fast={true}
+                                spellCheck={false}
+                              />
                             </Form.Item>
                           </Col>
                           <Col xs={24} sm={12}>
                             <Form.Item
+                              hasFeedback={
+                                touched["last_name"] || submitCount > 0
+                              }
+                              help={
+                                (touched["last_name"] || submitCount > 0) &&
+                                errors["last_name"]
+                              }
+                              validateStatus={
+                                touched["last_name"] || submitCount > 0
+                                  ? errors["last_name"]
+                                    ? "error"
+                                    : "success"
+                                  : ""
+                              }
                               label="Last Name"
                               name="last_name"
                               required
                             >
-                              <Input name="last_name" spellCheck={false} />
+                              <Input
+                                fast={true}
+                                name="last_name"
+                                spellCheck={false}
+                              />
                             </Form.Item>
                           </Col>
                         </Row>
                         <Row gutter={[15, 0]}>
                           <Col xs={24} sm={12}>
-                            <Form.Item label="Email" name="email" required>
+                            <Form.Item
+                              hasFeedback={touched["email"] || submitCount > 0}
+                              help={
+                                (touched["email"] || submitCount > 0) &&
+                                errors["email"]
+                              }
+                              validateStatus={
+                                touched["email"] || submitCount > 0
+                                  ? errors["email"]
+                                    ? "error"
+                                    : "success"
+                                  : ""
+                              }
+                              label="Email"
+                              name="email"
+                              required
+                            >
                               <Input
+                                fast={true}
                                 name="email"
                                 type="email"
                                 spellCheck={false}
@@ -133,11 +204,29 @@ const FormComponent = () => {
                           </Col>
                           <Col xs={24} sm={12}>
                             <Form.Item
+                              hasFeedback={
+                                touched["telephone"] || submitCount > 0
+                              }
+                              help={
+                                (touched["telephone"] || submitCount > 0) &&
+                                errors["telephone"]
+                              }
+                              validateStatus={
+                                touched["telephone"] || submitCount > 0
+                                  ? errors["telephone"]
+                                    ? "error"
+                                    : "success"
+                                  : ""
+                              }
                               label="Telephone"
                               name="telephone"
                               required
                             >
-                              <Input name="telephone" spellCheck={false} />
+                              <Input
+                                fast={true}
+                                name="telephone"
+                                spellCheck={false}
+                              />
                             </Form.Item>
                           </Col>
                         </Row>
@@ -145,7 +234,30 @@ const FormComponent = () => {
                     </Row>
                     <Row gutter={[15, 0]}>
                       <Col xs={24} sm={12}>
-                        <Form.Item label="Gender" name="gender" required>
+                        <Form.Item
+                          hasFeedback={touched["gender"] || submitCount > 0}
+                          help={
+                            submitCount > 0 && !values["gender"]
+                              ? errors["gender"]
+                              : touched["gender"] && values["gender"] === false
+                              ? errors["gender"]
+                              : false
+                          }
+                          validateStatus={
+                            submitCount > 0
+                              ? values["gender"]
+                                ? "success"
+                                : "error"
+                              : touched["gender"]
+                              ? values["gender"]
+                                ? "success"
+                                : "error"
+                              : ""
+                          }
+                          label="Gender"
+                          name="gender"
+                          required
+                        >
                           <Checkbox
                             checked={values.gender === "Female"}
                             name="gender"
@@ -174,15 +286,27 @@ const FormComponent = () => {
                       </Col>
                       <Col xs={24} sm={12}>
                         <Form.Item
+                          hasFeedback={touched["birthday"] || submitCount > 0}
+                          help={
+                            touched["birthday"] || submitCount > 0
+                              ? errors["birthday"]
+                                ? errors["birthday"]
+                                : `Age is ${getAge(values["birthday"])} years`
+                              : false
+                          }
+                          validateStatus={
+                            touched["birthday"] || submitCount > 0
+                              ? errors["birthday"]
+                                ? "error"
+                                : "success"
+                              : ""
+                          }
                           required
                           name="birthday"
-                          label={`Birthday${
-                            values.birthday
-                              ? ` (${getAge(values.birthday)} years)`
-                              : ""
-                          }`}
+                          label={`Birthday`}
                         >
                           <DatePicker
+                            onBlur={() => setFieldTouched("birthday", true)}
                             name="birthday"
                             style={{ width: "100%" }}
                           ></DatePicker>
@@ -191,7 +315,20 @@ const FormComponent = () => {
                     </Row>
                     <Row gutter={[15, 0]}>
                       <Col xs={24} sm={12}>
-                        <Form.Item name="ethnicity" label="Ethnicity" required>
+                        <Form.Item
+                          hasFeedback={touched["ethnicity"] || submitCount > 0}
+                          help={submitCount > 0 ? errors["ethnicity"] : false}
+                          validateStatus={
+                            submitCount > 0 || touched["ethnicity"]
+                              ? errors["ethnicity"]
+                                ? "error"
+                                : "success"
+                              : ""
+                          }
+                          name="ethnicity"
+                          label="Ethnicity"
+                          required
+                        >
                           <Radio.Group name="ethnicity">
                             <Radio name="ethnicity" value={"White"}>
                               White
@@ -207,6 +344,21 @@ const FormComponent = () => {
                       </Col>
                       <Col xs={24} sm={12}>
                         <Form.Item
+                          hasFeedback={
+                            touched["nationality"] || submitCount > 0
+                          }
+                          help={
+                            touched["nationality"] || submitCount > 0
+                              ? errors["nationality"]
+                              : false
+                          }
+                          validateStatus={
+                            touched["nationality"] || submitCount > 0
+                              ? errors["nationality"]
+                                ? "error"
+                                : "success"
+                              : ""
+                          }
                           name="nationality"
                           label="Nationality"
                           required
@@ -223,8 +375,10 @@ const FormComponent = () => {
                                 .indexOf(input.toLowerCase()) >= 0
                             }
                           >
-                            {Object.values(countries).map((x) => (
-                              <Option value={x.name}>{x.name}</Option>
+                            {Object.values(countries).map((x, i) => (
+                              <Option key={`country-${i}`} value={x.name}>
+                                {x.name}
+                              </Option>
                             ))}
                           </Select>
                         </Form.Item>
@@ -232,6 +386,7 @@ const FormComponent = () => {
                     </Row>
                     <Form.Item name="height" label="Height, cm">
                       <Slider
+                        fast={true}
                         name="height"
                         max={300}
                         defaultValue={150}
