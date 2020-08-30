@@ -50,9 +50,7 @@ const FormComponent = () => {
       <div style={{ maxWidth: "700px", width: "100%", padding: "20px" }}>
         <Formik
           validationSchema={validationSchema}
-          initialValues={{
-            picked: "",
-          }}
+          initialValues={{}}
           onSubmit={async (values) => {
             await new Promise((r) => setTimeout(r, 500));
             alert(JSON.stringify(values, null, 2));
